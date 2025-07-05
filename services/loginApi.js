@@ -10,8 +10,16 @@ export const loginApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+    posLogOut: builder.mutation({
+      query: (data) => ({
+        url: "user/logout",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
   overrideExisting: true,
 });
 
-export const { usePosLoginMutation } = loginApi;
+export const { usePosLoginMutation, usePosLogOutMutation } = loginApi;
