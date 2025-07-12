@@ -2,7 +2,7 @@ import { apiSlice } from "../store/apiSlice";
 
 export const loginApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    posLogin: builder.mutation({
+    postLogin: builder.mutation({
       query: (data) => ({
         url: "user/login",
         method: "POST",
@@ -10,7 +10,7 @@ export const loginApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
-    posLogOut: builder.mutation({
+    postLogOut: builder.mutation({
       query: (data) => ({
         url: "user/logout",
         method: "POST",
@@ -22,4 +22,4 @@ export const loginApi = apiSlice.injectEndpoints({
   overrideExisting: true,
 });
 
-export const { usePosLoginMutation, usePosLogOutMutation } = loginApi;
+export const { usePostLoginMutation, usePostLogOutMutation } = loginApi;
