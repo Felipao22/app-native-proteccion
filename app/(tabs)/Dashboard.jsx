@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { usePostLogOutMutation } from "../services/loginApi";
+import { usePostLogOutMutation } from "../../services/loginApi";
 import {
   Shield,
   TriangleAlert as AlertTriangle,
@@ -23,11 +23,19 @@ import {
   ChevronUp,
 } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
-export default function Dashboard({ navigation }) {
+export default function Dashboard() {
   const [userData, setUserData] = useState(null);
   const [showAllActios, setShowAllActios] = useState(false);
+
+  const router = useRouter();
+
+  const insets = useSafeAreaInsets();
 
   //Mutation Redux
   const [posLogOut] = usePostLogOutMutation();
@@ -53,7 +61,7 @@ export default function Dashboard({ navigation }) {
     try {
       await posLogOut().unwrap();
       await AsyncStorage.clear();
-      navigation.replace("Login");
+      router.replace("/");
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
     }
@@ -108,7 +116,7 @@ export default function Dashboard({ navigation }) {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
@@ -151,7 +159,7 @@ export default function Dashboard({ navigation }) {
                 <TouchableOpacity
                   key={index}
                   style={styles.actionCard}
-                  onPress={() => navigation.navigate(action.screen)}
+                  onPress={() => router.replace(action.screen)}
                 >
                   <View
                     style={[
@@ -210,6 +218,13 @@ export default function Dashboard({ navigation }) {
             </View>
           ))}
         </View> */}
+          <TouchableOpacity onPress={handleLogout} style={{ marginTop: 16 }}>
+            <Text
+              style={{ color: "red", fontWeight: "bold", textAlign: "center" }}
+            >
+              Cerrar sesión
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
     </>

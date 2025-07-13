@@ -233,7 +233,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { usePostConstanciaVisitaMutation } from "../services/constanciaVisitaApi";
+import { usePostConstanciaVisitaMutation } from "../../services/constanciaVisitaApi";
 
 export default function ConstanciaVisitaScreen() {
   const initialValues = {
