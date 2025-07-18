@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { usePostConstanciaVisitaMutation } from "../../services/constanciaVisitaApi";
+import { useGetUsersQuery } from "../../services/usuariosApi";
+import { Picker } from "@react-native-picker/picker";
 
 export default function ConstanciaVisitaScreen() {
   const initialValues = {
@@ -26,9 +28,23 @@ export default function ConstanciaVisitaScreen() {
   const [inputs, setInputs] = useState(initialValues);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [errors, setErrors] = useState({});
+  const [branches, setBranches] = useState([]);
 
   // Mutation Redux
   const [postConstancia, { isLoading }] = usePostConstanciaVisitaMutation();
+
+  //Querys Redux
+  const { data, isFetching } = useGetUsersQuery();
+
+  useEffect(() => {
+    if (data?.length > 0) {
+      //Filtrar usuarios que no sean empresas
+      const filterData = data.filter((e) => !e.isAdmin && !e.isSuperAdmin);
+      //Obtener nombres de las empresas
+      const establecimientos = filterData.map((est) => est);
+      setBranches(establecimientos);
+    }
+  }, [data]);
 
   // Formatea objeto Date a string dd/MM/yyyy
   const formatDate = (date) => {
@@ -51,6 +67,28 @@ export default function ConstanciaVisitaScreen() {
 
   const handleChange = (name, value) => {
     setInputs({ ...inputs, [name]: value });
+  };
+
+  const handleChangeEmpresa = (empresaNombre) => {
+    const empresaSeleccionada = branches.find(
+      (e) => e.nombreEmpresa === empresaNombre
+    );
+
+    if (empresaSeleccionada) {
+      setInputs((prevInputs) => ({
+        ...prevInputs,
+        empresa: empresaNombre,
+        direccion: empresaSeleccionada.direccion || "",
+        localidad: empresaSeleccionada.ciudad || "",
+        provincia: "San Luis",
+        cuit: empresaSeleccionada.cuit || "",
+      }));
+    } else {
+      setInputs((prevInputs) => ({
+        ...prevInputs,
+        empresa: empresaNombre,
+      }));
+    }
   };
 
   const validate = () => {
@@ -92,7 +130,6 @@ export default function ConstanciaVisitaScreen() {
   };
 
   const inputsData = [
-    { label: "Empresa", name: "empresa", placeholder: "Nombre de la empresa" },
     { label: "Dirección", name: "direccion", placeholder: "Dirección" },
     { label: "Provincia", name: "provincia", placeholder: "Provincia" },
     { label: "Localidad", name: "localidad", placeholder: "Localidad" },
@@ -115,6 +152,37 @@ export default function ConstanciaVisitaScreen() {
         </View>
 
         <View style={styles.form}>
+          <Text style={styles.label}>Empresa</Text>
+          <View
+            style={[
+              styles.input,
+              errors.empresa && styles.inputError,
+              { height: 60, paddingHorizontal: 0, justifyContent: "center" },
+            ]}
+          >
+            <Picker
+              selectedValue={inputs.empresa}
+              onValueChange={handleChangeEmpresa}
+              style={{
+                height: 60,
+                color: inputs.empresa ? "#0f172a" : "#94a3b8",
+              }}
+              dropdownIconColor="#475569" // opcional para el ícono
+            >
+              <Picker.Item label="Seleccionar empresa" value="" />
+              {branches?.map((empresa, index) => (
+                <Picker.Item
+                  label={empresa.nombreEmpresa}
+                  value={empresa.nombreEmpresa}
+                  key={index}
+                />
+              ))}
+            </Picker>
+          </View>
+
+          {errors.empresa && (
+            <Text style={styles.errorText}>{errors.empresa}</Text>
+          )}
           {inputsData.map(({ label, name, placeholder, keyboardType }) => (
             <View key={name}>
               <Text style={styles.label}>{label}</Text>
@@ -221,5 +289,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
+  },
+  pickerSelection: {
+    padding: 0,
   },
 });
