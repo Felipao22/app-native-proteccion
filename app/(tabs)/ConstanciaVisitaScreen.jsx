@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { usePostConstanciaVisitaMutation } from "../../services/constanciaVisitaApi";
 import { useGetUsersQuery } from "../../services/usuariosApi";
 import { Picker } from "@react-native-picker/picker";
+import Checkbox from "expo-checkbox";
+import { ChevronDown, ChevronUp } from "lucide-react-native";
 
 export default function ConstanciaVisitaScreen() {
   const initialValues = {
@@ -23,12 +25,25 @@ export default function ConstanciaVisitaScreen() {
     cuit: "",
     fechaVisita: "",
     provincia: "",
+    botiquines: false,
+    extintores: false,
+    luces: false,
+    maquinas: false,
+    tableros: false,
+    epp: false,
+    vehiculos: false,
+    arneses: false,
+    escaleras: false,
+    inspeccion: false,
+    relevamiento: false,
+    capacitacion: false,
   };
 
   const [inputs, setInputs] = useState(initialValues);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [errors, setErrors] = useState({});
   const [branches, setBranches] = useState([]);
+  const [showCheckboxes, setShowCheckboxes] = useState(false);
 
   // Mutation Redux
   const [postConstancia, { isLoading }] = usePostConstanciaVisitaMutation();
@@ -91,6 +106,13 @@ export default function ConstanciaVisitaScreen() {
     }
   };
 
+  const handleCheckbox = (name, value) => {
+    setInputs((prevInputs) => ({
+      ...prevInputs,
+      [name]: value,
+    }));
+  };
+
   const validate = () => {
     const newErrors = {};
     if (!inputs.empresa) newErrors.empresa = "Campo requerido";
@@ -141,6 +163,39 @@ export default function ConstanciaVisitaScreen() {
     },
   ];
 
+  const checkboxes = [
+    { label: "Control de Botiquines", name: "botiquines", checked: false },
+    { label: "Control de Extintores", name: "extintores", checked: false },
+    { label: "Control de Luces de Emergerncia", name: "luces", checked: false },
+    {
+      label: "Control de Máquinas y/o Herramientas",
+      name: "maquinas",
+      checked: false,
+    },
+    {
+      label: "Control de Tableros Eléctricos",
+      name: "tableros",
+      checked: false,
+    },
+    { label: "Control de use de E.P.P.", name: "epp", checked: false },
+    { label: "Control de Vehículos", name: "vehiculos", checked: false },
+    { label: "Control de Arneses", name: "arneses", checked: false },
+    { label: "Control de Escaleras", name: "escaleras", checked: false },
+    {
+      label: "Inspección de Infraestructura",
+      name: "inspeccion",
+      checked: false,
+    },
+    {
+      label: "Relevamiento de Documentación Técnico Legal",
+      name: "relevamiento",
+      checked: false,
+    },
+    { label: "Registro de Capacitación", name: "capacitacion", checked: false },
+  ];
+
+  const checkboxesVisibles = showCheckboxes ? checkboxes : null;
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -164,11 +219,12 @@ export default function ConstanciaVisitaScreen() {
               selectedValue={inputs.empresa}
               onValueChange={handleChangeEmpresa}
               style={{
-                height: 60,
+                height: 80,
                 color: inputs.empresa ? "#0f172a" : "#94a3b8",
               }}
-              dropdownIconColor="#475569" // opcional para el ícono
+              dropdownIconColor="#475569"
             >
+              {isFetching && <Text>Cargando...</Text>}
               <Picker.Item label="Seleccionar empresa" value="" />
               {branches?.map((empresa, index) => (
                 <Picker.Item
@@ -221,6 +277,39 @@ export default function ConstanciaVisitaScreen() {
               onChange={handleDateChange}
             />
           )}
+          <TouchableOpacity
+            onPress={() => setShowCheckboxes(!showCheckboxes)}
+            style={styles.toggleButton}
+          >
+            <View style={styles.toggleContent}>
+              <Text style={styles.labelDocumentacion}>
+                Documentación que se adjunta
+              </Text>
+              {showCheckboxes ? (
+                <ChevronUp size={18} color="#1e40af" />
+              ) : (
+                <ChevronDown size={18} color="#1e40af" />
+              )}
+            </View>
+          </TouchableOpacity>
+
+          {checkboxesVisibles?.map(({ label, name }) => (
+            <View
+              key={name}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginVertical: 4,
+              }}
+            >
+              <Checkbox
+                style={styles.checkbox}
+                value={inputs[name]}
+                onValueChange={(newValue) => handleCheckbox(name, newValue)}
+              />
+              <Text style={styles.labelCheckbox}>{label}</Text>
+            </View>
+          ))}
 
           <TouchableOpacity
             onPress={handleSubmit}
@@ -292,5 +381,35 @@ const styles = StyleSheet.create({
   },
   pickerSelection: {
     padding: 0,
+  },
+  labelCheckbox: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#475569",
+    margin: 8,
+  },
+  toggleContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "end",
+    paddingVertical: 6,
+  },
+  toggleButtonText: {
+    fontSize: 14,
+    color: "#1e40af",
+    fontWeight: "600",
+    marginLeft: 6,
+  },
+  icon: {
+    marginLeft: 8,
+    paddingBottom: 10,
+  },
+  toggleButton: {
+    marginTop: 16,
+  },
+  labelDocumentacion: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#475569",
   },
 });
