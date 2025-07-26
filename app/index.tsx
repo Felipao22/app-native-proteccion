@@ -12,13 +12,14 @@ import {
 } from "react-native";
 import { User, Lock, Eye, EyeOff } from "lucide-react-native";
 import { usePostLoginMutation } from "../services/loginApi";
-import logo from "../assets/LOGO CUADRADO blanco.png";
+import logo from "../assets/logo.png";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import type { dataLogin } from "../services/loginApi";
 
 export default function Main() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
 
   //Mutation Redux
@@ -28,7 +29,7 @@ export default function Main() {
 
   const handleSubmit = async () => {
     try {
-      const data = { email, password };
+      const data: dataLogin = { email, password };
       const response = await login(data).unwrap();
 
       if (response) {

@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
+  KeyboardTypeOptions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -19,6 +20,7 @@ import { useGetUsersQuery } from "../../services/usuariosApi";
 import { Picker } from "@react-native-picker/picker";
 import Checkbox from "expo-checkbox";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
+import type { Users } from "../../services/usuariosApi";
 
 export default function ConstanciaVisitaScreen() {
   const initialValues = {
@@ -43,10 +45,19 @@ export default function ConstanciaVisitaScreen() {
     notas: "",
   };
 
+  const initialErrors = {
+    empresa: "",
+    direccion: "",
+    localidad: "",
+    cuit: "",
+    fechaVisita: "",
+    provincia: "",
+  };
+
   const [inputs, setInputs] = useState(initialValues);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [branches, setBranches] = useState([]);
+  const [errors, setErrors] = useState(initialErrors);
+  const [branches, setBranches] = useState<Users[]>([]);
   const [showCheckboxes, setShowCheckboxes] = useState(false);
 
   // Mutation Redux
@@ -56,7 +67,7 @@ export default function ConstanciaVisitaScreen() {
   const { data, isFetching } = useGetUsersQuery();
 
   useEffect(() => {
-    if (data?.length > 0) {
+    if (data && data?.length > 0) {
       //Filtrar usuarios que no sean empresas
       const filterData = data.filter((e) => !e.isAdmin && !e.isSuperAdmin);
       //Obtener nombres de las empresas
@@ -66,8 +77,8 @@ export default function ConstanciaVisitaScreen() {
   }, [data]);
 
   // Formatea objeto Date a string dd/MM/yyyy
-  const formatDate = (date) => {
-    if (!(date instanceof Date) || isNaN(date)) return "";
+  const formatDate = (date: Date | string) => {
+    if (!(date instanceof Date) || isNaN(date.getTime())) return "";
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, "0");
     const dd = String(date.getDate()).padStart(2, "0");
@@ -75,20 +86,22 @@ export default function ConstanciaVisitaScreen() {
   };
 
   // Parsea string dd/MM/yyyy a objeto Date
-  const parseDate = (dateStr) => {
+  const parseDate = (dateStr: string) => {
     if (!dateStr) return new Date();
     const parts = dateStr.split("/");
     if (parts.length !== 3) return new Date();
     const [dd, mm, yyyy] = parts;
     const parsed = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
-    return parsed instanceof Date && !isNaN(parsed) ? parsed : new Date();
+    return parsed instanceof Date && !isNaN(parsed.getTime())
+      ? parsed
+      : new Date();
   };
 
-  const handleChange = (name, value) => {
+  const handleChange = (name: keyof typeof initialValues, value: string) => {
     setInputs({ ...inputs, [name]: value });
   };
 
-  const handleChangeEmpresa = (empresaNombre) => {
+  const handleChangeEmpresa = (empresaNombre: string) => {
     const empresaSeleccionada = branches.find(
       (e) => e.nombreEmpresa === empresaNombre
     );
@@ -110,7 +123,7 @@ export default function ConstanciaVisitaScreen() {
     }
   };
 
-  const handleCheckbox = (name, value) => {
+  const handleCheckbox = (name: keyof typeof initialValues, value: boolean) => {
     setInputs((prevInputs) => ({
       ...prevInputs,
       [name]: value,
@@ -118,7 +131,14 @@ export default function ConstanciaVisitaScreen() {
   };
 
   const validate = () => {
-    const newErrors = {};
+    const newErrors: typeof initialErrors = {
+      empresa: "",
+      direccion: "",
+      localidad: "",
+      cuit: "",
+      fechaVisita: "",
+      provincia: "",
+    };
     if (!inputs.empresa) newErrors.empresa = "Campo requerido";
     if (!inputs.direccion) newErrors.direccion = "Campo requerido";
     if (!inputs.localidad) newErrors.localidad = "Campo requerido";
@@ -126,7 +146,7 @@ export default function ConstanciaVisitaScreen() {
     if (!inputs.fechaVisita) newErrors.fechaVisita = "Campo requerido";
     if (!inputs.provincia) newErrors.provincia = "Campo requerido";
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return Object.values(newErrors).every((v) => v === "");
   };
 
   const handleSubmit = async () => {
@@ -137,7 +157,7 @@ export default function ConstanciaVisitaScreen() {
           Alert.alert(response.message);
           handleClear();
         }
-      } catch (error) {
+      } catch (error: any) {
         Alert.alert(error.data?.message || "Error al enviar formulario");
       }
     }
@@ -147,15 +167,23 @@ export default function ConstanciaVisitaScreen() {
     setInputs(initialValues);
   };
 
-  const handleDateChange = (event, selectedDate) => {
+  const handleDateChange = (_event: any, selectedDate: Date | undefined) => {
     setShowDatePicker(false);
-    if (selectedDate && selectedDate instanceof Date && !isNaN(selectedDate)) {
+    if (
+      selectedDate &&
+      selectedDate instanceof Date &&
+      !isNaN(selectedDate.getTime())
+    ) {
       const formattedDate = formatDate(selectedDate);
       handleChange("fechaVisita", formattedDate);
     }
   };
-
-  const inputsData = [
+  const inputsData: {
+    label: string;
+    name: keyof typeof initialValues;
+    placeholder: string;
+    keyboardType?: KeyboardTypeOptions;
+  }[] = [
     { label: "Dirección", name: "direccion", placeholder: "Dirección" },
     { label: "Provincia", name: "provincia", placeholder: "Provincia" },
     { label: "Localidad", name: "localidad", placeholder: "Localidad" },
@@ -257,14 +285,27 @@ export default function ConstanciaVisitaScreen() {
                 <View key={name}>
                   <Text style={styles.label}>{label}</Text>
                   <TextInput
-                    style={[styles.input, errors[name] && styles.inputError]}
-                    value={inputs[name]}
-                    onChangeText={(text) => handleChange(name, text)}
+                    style={[
+                      styles.input,
+                      errors[name as keyof typeof initialErrors] &&
+                        styles.inputError,
+                    ]}
+                    value={
+                      typeof inputs[name as keyof typeof initialValues] ===
+                      "string"
+                        ? (inputs[name as keyof typeof initialValues] as string)
+                        : ""
+                    }
+                    onChangeText={(text) =>
+                      handleChange(name as keyof typeof initialValues, text)
+                    }
                     placeholder={placeholder}
                     keyboardType={keyboardType || "default"}
                   />
-                  {errors[name] && (
-                    <Text style={styles.errorText}>{errors[name]}</Text>
+                  {errors[name as keyof typeof initialErrors] && (
+                    <Text style={styles.errorText}>
+                      {errors[name as keyof typeof initialErrors]}
+                    </Text>
                   )}
                 </View>
               ))}
@@ -319,9 +360,13 @@ export default function ConstanciaVisitaScreen() {
                   }}
                 >
                   <Checkbox
-                    style={styles.checkbox}
-                    value={inputs[name]}
-                    onValueChange={(newValue) => handleCheckbox(name, newValue)}
+                    value={!!inputs[name as keyof typeof inputs]}
+                    onValueChange={(newValue) =>
+                      handleCheckbox(
+                        name as keyof typeof initialValues,
+                        newValue
+                      )
+                    }
                   />
                   <Text style={styles.labelCheckbox}>{label}</Text>
                 </View>
@@ -418,7 +463,6 @@ const styles = StyleSheet.create({
   toggleContent: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "end",
     paddingVertical: 6,
   },
   toggleButtonText: {

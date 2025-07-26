@@ -7,7 +7,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo export --platform web",
-    "lint": "expo lint"
+    "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
@@ -20,6 +20,7 @@
     "axios": "^1.9.0",
     "date-fns": "^4.1.0",
     "expo": "~53.0.19",
+    "expo-checkbox": "~4.1.4",
     "expo-constants": "~17.1.7",
     "expo-router": "~5.1.3",
     "expo-status-bar": "~2.2.3",
@@ -32,16 +33,18 @@
     "react-native-screens": "~4.11.1",
     "react-native-web": "^0.20.0",
     "react-redux": "^9.2.0",
-    "expo-checkbox": "~4.1.4"
+    "typescript": "~5.8.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": "~19.0.10",
-    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "eslint": "^9.32.0",
     "eslint-config-expo": "~9.2.0",
-    "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-prettier": "^5.4.0",
-    "prettier": "^3.5.3"
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.3",
+    "prettier": "^3.6.2"
   },
   "private": true
 }

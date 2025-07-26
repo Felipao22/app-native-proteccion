@@ -37,14 +37,18 @@ export default function TabLayout() {
         name="Dashboard"
         options={{
           title: "Dashboard",
-          tabBarIcon: ({ size, color }) => <House size={size} color={color} />,
+          tabBarIcon: ({ size, color }: { size: number; color: string }) => (
+            <House size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="ConstanciaVisitaScreen"
         options={{
           title: "Constancia Visita",
-          tabBarIcon: ({ size, color }) => <House size={size} color={color} />,
+          tabBarIcon: ({ size, color }: { size: number; color: string }) => (
+            <House size={size} color={color} />
+          ),
         }}
       />
     </Tabs>

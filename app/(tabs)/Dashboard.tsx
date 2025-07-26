@@ -22,20 +22,15 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react-native";
-import { StatusBar } from "expo-status-bar";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import type { User } from "../../services/loginApi";
 
 export default function Dashboard() {
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<User | null>(null);
   const [showAllActios, setShowAllActios] = useState(false);
 
   const router = useRouter();
-
-  const insets = useSafeAreaInsets();
 
   //Mutation Redux
   const [posLogOut] = usePostLogOutMutation();
@@ -159,7 +154,12 @@ export default function Dashboard() {
                 <TouchableOpacity
                   key={index}
                   style={styles.actionCard}
-                  onPress={() => router.replace(action.screen)}
+                  onPress={() => {
+                    if (action.screen) {
+                      router.replace(action.screen);
+                    }
+                  }}
+                  disabled={!action.screen}
                 >
                   <View
                     style={[
