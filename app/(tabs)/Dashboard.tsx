@@ -26,6 +26,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import type { User } from "../../services/loginApi";
 
+type ScreenRoutes = "/ConstanciaVisitaScreen";
+
+interface Action {
+  title: string;
+  icon: any;
+  color: string;
+  screen?: ScreenRoutes;
+}
+
 export default function Dashboard() {
   const [userData, setUserData] = useState<User | null>(null);
   const [showAllActios, setShowAllActios] = useState(false);
@@ -71,12 +80,12 @@ export default function Dashboard() {
     );
   }
 
-  const quickActions = [
+  const quickActions: Action[] = [
     {
       title: "Constancia de visita",
       icon: CheckCircle,
       color: "#059669",
-      screen: "ConstanciaVisitaScreen",
+      screen: "/ConstanciaVisitaScreen",
     },
     {
       title: "Informe de incidentes-accidentes",
