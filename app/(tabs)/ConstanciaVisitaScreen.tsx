@@ -21,6 +21,7 @@ import { Picker } from "@react-native-picker/picker";
 import Checkbox from "expo-checkbox";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import type { Users } from "../../services/usuariosApi";
+import type { constanciaVisita } from "../../services/constanciaVisitaApi";
 
 export default function ConstanciaVisitaScreen() {
   const initialValues = {
@@ -54,7 +55,7 @@ export default function ConstanciaVisitaScreen() {
     provincia: "",
   };
 
-  const [inputs, setInputs] = useState(initialValues);
+  const [inputs, setInputs] = useState<constanciaVisita>(initialValues);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
   const [branches, setBranches] = useState<Users[]>([]);
