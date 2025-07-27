@@ -5,6 +5,7 @@ import {
   TriangleAlert as AlertTriangle,
   GraduationCap,
   User,
+  File,
 } from "lucide-react-native";
 import { Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -43,12 +44,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="FilesScreen"
+        options={{
+          title: "Archivos",
+          tabBarIcon: ({ size, color }: { size: number; color: string }) => (
+            <File size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="ConstanciaVisitaScreen"
         options={{
-          title: "Constancia Visita",
-          tabBarIcon: ({ size, color }: { size: number; color: string }) => (
-            <House size={size} color={color} />
-          ),
+          href: null,
         }}
       />
     </Tabs>

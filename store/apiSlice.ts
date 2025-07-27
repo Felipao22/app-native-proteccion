@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import Constants from "expo-constants";
 
-export const tagTypes = ["User", "Constancia-visita"];
+export const tagTypes = ["User", "Constancia-visita", "File", "Kinds"];
 
 // Obtenemos la IP local del host desde el `manifest`
 const getLocalHost = () => {
