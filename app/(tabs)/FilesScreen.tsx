@@ -7,7 +7,6 @@ import {
   StyleSheet,
   SafeAreaView,
   TextInput,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import {
@@ -26,6 +25,7 @@ import {
   useGetKindsFilesQuery,
 } from "../../services/filesApi";
 import { formatDate } from "../../utils/parseDate";
+import { useDownloadFile } from "../../hooks/useDownloadFile";
 
 export default function FilesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,6 +35,9 @@ export default function FilesScreen() {
   const { data: filesData, isFetching } = useGetFilesQuery();
   const { data: kindsData, isFetching: isFetchingKinds } =
     useGetKindsFilesQuery();
+
+  //Custom hook
+  const { download, isLoading } = useDownloadFile();
 
   const getFileIcon = (type: string) => {
     switch (type) {
@@ -108,34 +111,18 @@ export default function FilesScreen() {
     return color || "#64748b";
   };
 
-  const handleDownload = (document: any) => {
-    Alert.alert("Download File", `Download "${document.name}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Download",
-        onPress: () => {
-          // In a real app, this would trigger the actual download
-          Alert.alert(
-            "Success",
-            `${document.name} has been downloaded to your device.`
-          );
-        },
-      },
-    ]);
-  };
-
-  const handlePreview = (document: any) => {
-    Alert.alert("Preview File", `Open "${document.name}" for preview?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Open",
-        onPress: () => {
-          // In a real app, this would open the file preview
-          Alert.alert("Preview", `Opening ${document.name} for preview...`);
-        },
-      },
-    ]);
-  };
+  // const handlePreview = (document: any) => {
+  //   Alert.alert("Preview File", `Open "${document.name}" for preview?`, [
+  //     { text: "Cancel", style: "cancel" },
+  //     {
+  //       text: "Open",
+  //       onPress: () => {
+  //         // In a real app, this would open the file preview
+  //         Alert.alert("Preview", `Opening ${document.name} for preview...`);
+  //       },
+  //     },
+  //   ]);
+  // };
 
   if (isFetching || isFetchingKinds) {
     return (
@@ -261,22 +248,22 @@ export default function FilesScreen() {
               </View>
 
               <View style={styles.documentActions}>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={styles.actionButton}
                   onPress={() => handlePreview(document)}
                 >
                   <Eye size={18} color="#1e40af" />
                   <Text style={styles.actionButtonText}>Previsualizar</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
                 <TouchableOpacity
                   style={[styles.actionButton, styles.downloadButton]}
-                  onPress={() => handleDownload(document)}
+                  onPress={() => download(document.id, document.name)}
                 >
                   <Download size={18} color="#ffffff" />
                   <Text
                     style={[styles.actionButtonText, styles.downloadButtonText]}
                   >
-                    Descargar
+                    {isLoading ? "Descargando" : "Descargar"}
                   </Text>
                 </TouchableOpacity>
               </View>
