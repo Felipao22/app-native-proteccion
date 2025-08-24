@@ -38,7 +38,7 @@ export const constanciaVisitaApi = apiSlice.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Constancia-visita"],
+      invalidatesTags: ["File"],
     }),
   }),
   overrideExisting: true,
