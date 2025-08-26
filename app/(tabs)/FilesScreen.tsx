@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   TextInput,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import {
   Search,
@@ -18,23 +19,28 @@ import {
   File,
   Calendar,
   FolderOpen,
-  Eye,
 } from "lucide-react-native";
 import {
   useGetFilesQuery,
   useGetKindsFilesQuery,
+  useLazyGetFilesByKindIdQuery,
 } from "../../services/filesApi";
 import { formatDate } from "../../utils/parseDate";
 import { useDownloadFile } from "../../hooks/useDownloadFile";
+import type { File as TypeFile } from "@/services/usuariosApi";
 
 export default function FilesScreen() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [isSearched, setIsSearched] = useState<boolean>(false);
+  const [filteredFiles, setFilteredFiles] = useState<TypeFile[]>([]);
 
   //Querys Redux
-  const { data: filesData, isFetching } = useGetFilesQuery();
+  const { data: filesData, isFetching, refetch } = useGetFilesQuery();
   const { data: kindsData, isFetching: isFetchingKinds } =
     useGetKindsFilesQuery();
+  const [getFilesByKindId, { isFetching: isFetchingFilesByKindId }] =
+    useLazyGetFilesByKindIdQuery();
 
   //Custom hook
   const { download, isLoading } = useDownloadFile();
@@ -111,20 +117,28 @@ export default function FilesScreen() {
     return color || "#64748b";
   };
 
-  // const handlePreview = (document: any) => {
-  //   Alert.alert("Preview File", `Open "${document.name}" for preview?`, [
-  //     { text: "Cancel", style: "cancel" },
-  //     {
-  //       text: "Open",
-  //       onPress: () => {
-  //         // In a real app, this would open the file preview
-  //         Alert.alert("Preview", `Opening ${document.name} for preview...`);
-  //       },
-  //     },
-  //   ]);
-  // };
+  const getFilesByKindIdHandler = async (kindId: string) => {
+    if (kindId.trim() === "") return;
+    setIsSearched(true);
+    try {
+      setSelectedCategory(kindId);
+      const response = await getFilesByKindId(kindId).unwrap();
+      if (response.length > 0) {
+        setFilteredFiles(response);
+      } else {
+        Alert.alert("No hay archivos en esta categoría");
+        setFilteredFiles(response);
+      }
+    } catch (error) {
+      console.error("Error al obtener archivos por categoría:", error);
+      Alert.alert(
+        "Error",
+        "No se pudieron cargar los archivos de esta categoría"
+      );
+    }
+  };
 
-  if (isFetching || isFetchingKinds) {
+  if (isFetching || isFetchingKinds || isFetchingFilesByKindId) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centeredContent}>
@@ -134,6 +148,13 @@ export default function FilesScreen() {
       </SafeAreaView>
     );
   }
+
+  const handleClearFilters = async () => {
+    await refetch();
+    setIsSearched(false);
+    setFilteredFiles([]);
+    setSelectedCategory("all");
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -164,111 +185,127 @@ export default function FilesScreen() {
         contentContainerStyle={styles.categoriesContent}
       >
         {Array.isArray(kindsData) &&
-          kindsData.map((category: any) => (
-            <TouchableOpacity
-              key={category.id}
-              style={[
-                styles.categoryButton,
-                selectedCategory === category.id && styles.categoryButtonActive,
-              ]}
-              onPress={() => setSelectedCategory(category.id)}
-            >
-              <Text
+          [...kindsData]
+            .sort((a, b) => {
+              if (String(a.id) === String(selectedCategory)) return -1;
+              if (String(b.id) === String(selectedCategory)) return 1;
+              return 0;
+            })
+            .map((category: any) => (
+              <TouchableOpacity
+                key={category.id}
                 style={[
-                  styles.categoryText,
-                  selectedCategory === category.id && styles.categoryTextActive,
+                  styles.categoryButton,
+                  selectedCategory === category.id &&
+                    styles.categoryButtonActive,
                 ]}
+                onPress={() => getFilesByKindIdHandler(category.id)}
               >
-                {category.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    styles.categoryText,
+                    selectedCategory === category.id &&
+                      styles.categoryTextActive,
+                  ]}
+                >
+                  {category.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
       </ScrollView>
+
+      {isSearched && (
+        <View style={styles.clearFiltersContainer}>
+          <TouchableOpacity
+            style={styles.clearFiltersButton}
+            onPress={handleClearFilters}
+          >
+            <Text style={styles.clearFiltersText}>Limpiar filtros</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {filesData &&
-          filesData.map((document) => (
-            <View key={document.id} style={styles.documentCard}>
-              <View style={styles.documentHeader}>
-                <View style={styles.documentInfo}>
-                  <View style={styles.fileIconContainer}>
-                    {getFileIcon(document.type)}
-                  </View>
-                  <View style={styles.documentDetails}>
-                    <Text style={styles.documentName} numberOfLines={2}>
-                      {document.name}
-                    </Text>
-                    {/* <Text style={styles.documentDescription} numberOfLines={2}>
+        {(isSearched ? filteredFiles : filesData)?.map((document) => (
+          <View key={document.id} style={styles.documentCard}>
+            <View style={styles.documentHeader}>
+              <View style={styles.documentInfo}>
+                <View style={styles.fileIconContainer}>
+                  {getFileIcon(document.type)}
+                </View>
+                <View style={styles.documentDetails}>
+                  <Text style={styles.documentName} numberOfLines={2}>
+                    {document.name}
+                  </Text>
+                  {/* <Text style={styles.documentDescription} numberOfLines={2}>
                     {document.description}
                   </Text> */}
-                  </View>
-                </View>
-                <View
-                  style={[
-                    styles.categoryBadge,
-                    {
-                      backgroundColor: getCategoryColorByKindId(
-                        document.kindId
-                      ),
-                    },
-                  ]}
-                >
-                  <Text style={styles.categoryBadgeText}>
-                    {getCategory(document.kindId)}
-                  </Text>
                 </View>
               </View>
+              <View
+                style={[
+                  styles.categoryBadge,
+                  {
+                    backgroundColor: getCategoryColorByKindId(document.kindId),
+                  },
+                ]}
+              >
+                <Text style={styles.categoryBadgeText}>
+                  {getCategory(document.kindId)}
+                </Text>
+              </View>
+            </View>
 
-              <View style={styles.documentMeta}>
-                <View style={styles.metaRow}>
-                  <View style={styles.metaItem}>
-                    <Text style={styles.metaLabel}>Tamaño: </Text>
-                    <Text style={styles.metaValue}>{document.size} Kb.</Text>
-                  </View>
-                  {/* <View style={styles.metaItem}>
+            <View style={styles.documentMeta}>
+              <View style={styles.metaRow}>
+                <View style={styles.metaItem}>
+                  <Text style={styles.metaLabel}>Tamaño: </Text>
+                  <Text style={styles.metaValue}>{document.size} Kb.</Text>
+                </View>
+                {/* <View style={styles.metaItem}>
                   <Text style={styles.metaLabel}>Downloads: </Text>
                   <Text style={styles.metaValue}>{document.downloads}</Text>
                 </View> */}
+              </View>
+              <View style={styles.metaRow}>
+                <View style={styles.metaItem}>
+                  <Calendar size={14} color="#64748b" />
+                  <Text style={styles.metaText}>
+                    {formatDate(document.createdAt, "es")}
+                  </Text>
                 </View>
-                <View style={styles.metaRow}>
-                  <View style={styles.metaItem}>
-                    <Calendar size={14} color="#64748b" />
-                    <Text style={styles.metaText}>
-                      {formatDate(document.createdAt, "es")}
-                    </Text>
-                  </View>
-                  {/* <View style={styles.metaItem}>
+                {/* <View style={styles.metaItem}>
                   <User size={14} color="#64748b" />
                   <Text style={styles.metaText}>{document.uploadedBy}</Text>
                 </View> */}
-                </View>
               </View>
+            </View>
 
-              <View style={styles.documentActions}>
-                {/* <TouchableOpacity
+            <View style={styles.documentActions}>
+              {/* <TouchableOpacity
                   style={styles.actionButton}
                   onPress={() => handlePreview(document)}
                 >
                   <Eye size={18} color="#1e40af" />
                   <Text style={styles.actionButtonText}>Previsualizar</Text>
                 </TouchableOpacity> */}
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.downloadButton]}
-                  onPress={() => download(document.id, document.name)}
+              <TouchableOpacity
+                style={[styles.actionButton, styles.downloadButton]}
+                onPress={() => download(document.id, document.name)}
+              >
+                <Download size={18} color="#ffffff" />
+                <Text
+                  style={[styles.actionButtonText, styles.downloadButtonText]}
                 >
-                  <Download size={18} color="#ffffff" />
-                  <Text
-                    style={[styles.actionButtonText, styles.downloadButtonText]}
-                  >
-                    {isLoading ? "Descargando" : "Descargar"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                  {isLoading ? "Descargando" : "Descargar"}
+                </Text>
+              </TouchableOpacity>
             </View>
-          ))}
+          </View>
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
@@ -474,6 +511,22 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: "#1e293b",
+    fontWeight: "600",
+  },
+  clearFiltersContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 12,
+    alignItems: "flex-end",
+  },
+  clearFiltersButton: {
+    backgroundColor: "#dc2626",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  clearFiltersText: {
+    color: "#fff",
+    fontSize: 14,
     fontWeight: "600",
   },
 });
