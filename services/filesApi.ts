@@ -7,6 +7,11 @@ export interface Kind {
   categoryId: number;
 }
 
+export interface FileResponse {
+  message: string;
+  data: File[];
+}
+
 export const filesApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getFiles: builder.query<File[], void>({
@@ -17,8 +22,17 @@ export const filesApi = apiSlice.injectEndpoints({
       query: () => "/kind",
       providesTags: ["Kinds"],
     }),
+    getFilesByKindId: builder.query<File[], string>({
+      query: (kindId) => `/file/kind/${kindId}`,
+      providesTags: ["File"],
+      transformResponse: (response: FileResponse) => response.data,
+    }),
   }),
   overrideExisting: true,
 });
 
-export const { useGetFilesQuery, useGetKindsFilesQuery } = filesApi;
+export const {
+  useGetFilesQuery,
+  useGetKindsFilesQuery,
+  useLazyGetFilesByKindIdQuery,
+} = filesApi;
