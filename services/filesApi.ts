@@ -14,8 +14,9 @@ export interface FileResponse {
 
 export const filesApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getFiles: builder.query<File[], void>({
-      query: () => "/file",
+    getFiles: builder.query<File[], string | void>({
+      query: (name) =>
+        name && name.trim() !== "" ? `/file?name=${name}` : "/file",
       providesTags: ["File"],
     }),
     getKindsFiles: builder.query<Kind, void>({
