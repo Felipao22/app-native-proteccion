@@ -9,6 +9,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Keyboard,
 } from "react-native";
 import {
   Search,
@@ -30,13 +31,18 @@ import { useDownloadFile } from "../../hooks/useDownloadFile";
 import type { File as TypeFile } from "@/services/usuariosApi";
 
 export default function FilesScreen() {
+  const [searchInput, setSearchInput] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [isSearched, setIsSearched] = useState<boolean>(false);
   const [filteredFiles, setFilteredFiles] = useState<TypeFile[]>([]);
 
   //Querys Redux
-  const { data: filesData, isFetching, refetch } = useGetFilesQuery();
+  const {
+    data: filesData,
+    isFetching,
+    refetch,
+  } = useGetFilesQuery(searchQuery || undefined);
   const { data: kindsData, isFetching: isFetchingKinds } =
     useGetKindsFilesQuery();
   const [getFilesByKindId, { isFetching: isFetchingFilesByKindId }] =
@@ -149,11 +155,27 @@ export default function FilesScreen() {
     );
   }
 
+  const sanitizeInput = (text: string) => {
+    return text
+      .normalize("NFD") // separa acentos (á -> a +  ́)
+      .replace(/[\u0300-\u036f]/g, "") // quita acentos
+      .replace(/[^a-zA-Z0-9\s]/g, "") // solo letras, números y espacios
+      .trim();
+  };
+
   const handleClearFilters = async () => {
     await refetch();
     setIsSearched(false);
     setFilteredFiles([]);
     setSelectedCategory("all");
+    setSearchInput("");
+    setSearchQuery("");
+  };
+
+  const handleSearch = () => {
+    Keyboard.dismiss();
+    const formatedQuery = sanitizeInput(searchInput);
+    setSearchQuery(formatedQuery);
   };
 
   return (
@@ -167,14 +189,23 @@ export default function FilesScreen() {
 
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
-          <Search size={20} color="#64748b" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar archivos..."
             placeholderTextColor="#94a3b8"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
+            value={searchInput}
+            onChangeText={setSearchInput}
+            returnKeyType="search"
+            onSubmitEditing={handleSearch}
           />
+          <TouchableOpacity onPress={handleSearch}>
+            <Search
+              size={20}
+              color="#64748b"
+              style={styles.searchIcon}
+              onPress={handleSearch}
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -214,16 +245,19 @@ export default function FilesScreen() {
             ))}
       </ScrollView>
 
-      {isSearched && (
-        <View style={styles.clearFiltersContainer}>
-          <TouchableOpacity
-            style={styles.clearFiltersButton}
-            onPress={handleClearFilters}
-          >
-            <Text style={styles.clearFiltersText}>Limpiar filtros</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {isSearched ||
+        (searchInput.trim() !== "" && (
+          <View style={styles.clearFiltersContainer}>
+            <TouchableOpacity
+              style={styles.clearFiltersButton}
+              onPress={handleClearFilters}
+            >
+              <Text style={styles.clearFiltersText}>
+                {isSearched ? "Limpiar filtros" : "Limpiar búsqueda"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ))}
 
       <ScrollView
         style={styles.scrollView}
