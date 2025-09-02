@@ -23,10 +23,9 @@ export const filesApi = apiSlice.injectEndpoints({
       query: () => "/kind",
       providesTags: ["Kinds"],
     }),
-    getFilesByKindId: builder.query<File[], string>({
+    getFilesByKindId: builder.query<FileResponse, string>({
       query: (kindId) => `/file/kind/${kindId}`,
       providesTags: ["File"],
-      transformResponse: (response: FileResponse) => response.data,
     }),
   }),
   overrideExisting: true,
