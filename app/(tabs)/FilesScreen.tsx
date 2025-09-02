@@ -28,14 +28,14 @@ import {
 } from "../../services/filesApi";
 import { formatDate } from "../../utils/parseDate";
 import { useDownloadFile } from "../../hooks/useDownloadFile";
-import type { File as TypeFile } from "@/services/usuariosApi";
+import type { File as typeFile } from "@/services/usuariosApi";
 
 export default function FilesScreen() {
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [isSearched, setIsSearched] = useState<boolean>(false);
-  const [filteredFiles, setFilteredFiles] = useState<TypeFile[]>([]);
+  const [filteredFiles, setFilteredFiles] = useState<typeFile[]>([]);
 
   //Querys Redux
   const {
@@ -129,11 +129,11 @@ export default function FilesScreen() {
     try {
       setSelectedCategory(kindId);
       const response = await getFilesByKindId(kindId).unwrap();
-      if (response.length > 0) {
-        setFilteredFiles(response);
+      if (response.data?.length > 0) {
+        setFilteredFiles(response.data);
       } else {
         Alert.alert("No hay archivos en esta categoría");
-        setFilteredFiles(response);
+        setFilteredFiles(response.data);
       }
     } catch (error) {
       console.error("Error al obtener archivos por categoría:", error);
@@ -177,6 +177,10 @@ export default function FilesScreen() {
     const formatedQuery = sanitizeInput(searchInput);
     setSearchQuery(formatedQuery);
   };
+
+  const dataToRender = isSearched ? filteredFiles : filesData;
+
+  const renderButton = isSearched || searchInput.trim() !== "";
 
   return (
     <SafeAreaView style={styles.container}>
@@ -245,101 +249,111 @@ export default function FilesScreen() {
             ))}
       </ScrollView>
 
-      {isSearched ||
-        (searchInput.trim() !== "" && (
-          <View style={styles.clearFiltersContainer}>
-            <TouchableOpacity
-              style={styles.clearFiltersButton}
-              onPress={handleClearFilters}
-            >
-              <Text style={styles.clearFiltersText}>
-                {isSearched ? "Limpiar filtros" : "Limpiar búsqueda"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+      {renderButton && (
+        <View style={styles.clearFiltersContainer}>
+          <TouchableOpacity
+            style={styles.clearFiltersButton}
+            onPress={handleClearFilters}
+          >
+            <Text style={styles.clearFiltersText}>
+              {isSearched ? "Limpiar filtros" : "Limpiar búsqueda"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {(isSearched ? filteredFiles : filesData)?.map((document) => (
-          <View key={document.id} style={styles.documentCard}>
-            <View style={styles.documentHeader}>
-              <View style={styles.documentInfo}>
-                <View style={styles.fileIconContainer}>
-                  {getFileIcon(document.type)}
-                </View>
-                <View style={styles.documentDetails}>
-                  <Text style={styles.documentName} numberOfLines={2}>
-                    {document.name}
-                  </Text>
-                  {/* <Text style={styles.documentDescription} numberOfLines={2}>
+        {dataToRender && dataToRender.length > 0 ? (
+          dataToRender.map((document) => (
+            <View key={document.id} style={styles.documentCard}>
+              <View key={document.id} style={styles.documentCard}>
+                <View style={styles.documentHeader}>
+                  <View style={styles.documentInfo}>
+                    <View style={styles.fileIconContainer}>
+                      {getFileIcon(document.type)}
+                    </View>
+                    <View style={styles.documentDetails}>
+                      <Text style={styles.documentName} numberOfLines={2}>
+                        {document.name}
+                      </Text>
+                      {/* <Text style={styles.documentDescription} numberOfLines={2}>
                     {document.description}
                   </Text> */}
+                    </View>
+                  </View>
+                  <View
+                    style={[
+                      styles.categoryBadge,
+                      {
+                        backgroundColor: getCategoryColorByKindId(
+                          document.kindId
+                        ),
+                      },
+                    ]}
+                  >
+                    <Text style={styles.categoryBadgeText}>
+                      {getCategory(document.kindId)}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-              <View
-                style={[
-                  styles.categoryBadge,
-                  {
-                    backgroundColor: getCategoryColorByKindId(document.kindId),
-                  },
-                ]}
-              >
-                <Text style={styles.categoryBadgeText}>
-                  {getCategory(document.kindId)}
-                </Text>
-              </View>
-            </View>
 
-            <View style={styles.documentMeta}>
-              <View style={styles.metaRow}>
-                <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Tamaño: </Text>
-                  <Text style={styles.metaValue}>{document.size} Kb.</Text>
-                </View>
-                {/* <View style={styles.metaItem}>
+                <View style={styles.documentMeta}>
+                  <View style={styles.metaRow}>
+                    <View style={styles.metaItem}>
+                      <Text style={styles.metaLabel}>Tamaño: </Text>
+                      <Text style={styles.metaValue}>{document.size} Kb.</Text>
+                    </View>
+                    {/* <View style={styles.metaItem}>
                   <Text style={styles.metaLabel}>Downloads: </Text>
                   <Text style={styles.metaValue}>{document.downloads}</Text>
                 </View> */}
-              </View>
-              <View style={styles.metaRow}>
-                <View style={styles.metaItem}>
-                  <Calendar size={14} color="#64748b" />
-                  <Text style={styles.metaText}>
-                    {formatDate(document.createdAt, "es")}
-                  </Text>
-                </View>
-                {/* <View style={styles.metaItem}>
+                  </View>
+                  <View style={styles.metaRow}>
+                    <View style={styles.metaItem}>
+                      <Calendar size={14} color="#64748b" />
+                      <Text style={styles.metaText}>
+                        {formatDate(document.createdAt, "es")}
+                      </Text>
+                    </View>
+                    {/* <View style={styles.metaItem}>
                   <User size={14} color="#64748b" />
                   <Text style={styles.metaText}>{document.uploadedBy}</Text>
                 </View> */}
-              </View>
-            </View>
+                  </View>
+                </View>
 
-            <View style={styles.documentActions}>
-              {/* <TouchableOpacity
+                <View style={styles.documentActions}>
+                  {/* <TouchableOpacity
                   style={styles.actionButton}
                   onPress={() => handlePreview(document)}
                 >
                   <Eye size={18} color="#1e40af" />
                   <Text style={styles.actionButtonText}>Previsualizar</Text>
                 </TouchableOpacity> */}
-              <TouchableOpacity
-                style={[styles.actionButton, styles.downloadButton]}
-                onPress={() => download(document.id, document.name)}
-              >
-                <Download size={18} color="#ffffff" />
-                <Text
-                  style={[styles.actionButtonText, styles.downloadButtonText]}
-                >
-                  {isLoading ? "Descargando" : "Descargar"}
-                </Text>
-              </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.downloadButton]}
+                    onPress={() => download(document.id, document.name)}
+                  >
+                    <Download size={18} color="#ffffff" />
+                    <Text
+                      style={[
+                        styles.actionButtonText,
+                        styles.downloadButtonText,
+                      ]}
+                    >
+                      {isLoading ? "Descargando" : "Descargar"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
-          </View>
-        ))}
+          ))
+        ) : (
+          <Text style={styles.noResultsText}>No se encontraron documentos</Text>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -562,5 +576,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  noResultsText: {
+    textAlign: "center", // centra el texto
+    fontSize: 16, // tamaño legible
+    color: "#64748b", // gris suave para no destacar demasiado
+    marginTop: 20, // separación de otros elementos
+    fontStyle: "italic", // opcional, da un toque sutil
   },
 });
