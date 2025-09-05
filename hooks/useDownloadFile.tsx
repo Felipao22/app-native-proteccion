@@ -3,6 +3,7 @@ import { Alert, Platform } from "react-native";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Obtener host local
 const getLocalHost = () => {
@@ -66,10 +67,15 @@ export const useDownloadFile = () => {
       const safeFilename = filename.replace(/[^a-z0-9.\-_]/gi, "_");
       const fileUrl = `${getLocalHost()}/file/${id}`;
 
+      const token = await AsyncStorage.getItem("token");
+
       // Descargar archivo a cache temporal
       const localUri = FileSystem.cacheDirectory + safeFilename;
       const result = await FileSystem.downloadAsync(fileUrl, localUri, {
-        headers,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...headers,
+        },
       });
 
       if (Platform.OS === "android") {

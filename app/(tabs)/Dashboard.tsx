@@ -64,7 +64,8 @@ export default function Dashboard() {
   const handleLogout = async () => {
     try {
       await posLogOut().unwrap();
-      await AsyncStorage.clear();
+      await AsyncStorage.removeItem("token");
+      await AsyncStorage.removeItem("userData");
       router.replace("/");
     } catch (error) {
       console.error("Error al cerrar sesión:", error);

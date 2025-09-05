@@ -33,7 +33,7 @@ export default function Main() {
       const response = await login(data).unwrap();
 
       if (response) {
-        await AsyncStorage.setItem("userToken", response.token);
+        await AsyncStorage.setItem("token", response.token);
         await AsyncStorage.setItem("userData", JSON.stringify(response.user));
 
         Alert.alert("Éxito", response.message);
