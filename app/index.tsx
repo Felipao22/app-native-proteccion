@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Image,
+  Platform,
 } from "react-native";
 import { User, Lock, Eye, EyeOff } from "lucide-react-native";
 import { usePostLoginMutation } from "../services/loginApi";
@@ -46,7 +47,10 @@ export default function Main() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <View style={styles.logoContainer}>

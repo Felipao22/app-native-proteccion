@@ -22,6 +22,7 @@ import Checkbox from "expo-checkbox";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import type { Users } from "../../services/usuariosApi";
 import type { constanciaVisita } from "../../services/constanciaVisitaApi";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 export default function ConstanciaVisitaScreen() {
   const initialValues = {
@@ -230,172 +231,160 @@ export default function ConstanciaVisitaScreen() {
   const checkboxesVisibles = showCheckboxes ? checkboxes : null;
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView style={styles.container}>
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.header}>
-              <Text style={styles.sectionTitle}>Constancia de visita</Text>
-            </View>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ padding: 24 }}
+        enableOnAndroid={true}
+        extraScrollHeight={120}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.header}>
+          <Text style={styles.sectionTitle}>Constancia de visita</Text>
+        </View>
 
-            <View style={styles.form}>
-              <Text style={styles.label}>Empresa</Text>
-              <View
+        <View style={styles.form}>
+          <Text style={styles.label}>Empresa</Text>
+          <View
+            style={[
+              styles.input,
+              errors.empresa && styles.inputError,
+              {
+                height: 60,
+                paddingHorizontal: 0,
+                justifyContent: "center",
+              },
+            ]}
+          >
+            <Picker
+              selectedValue={inputs.empresa}
+              onValueChange={handleChangeEmpresa}
+              style={{
+                height: 80,
+                color: inputs.empresa ? "#0f172a" : "#94a3b8",
+              }}
+              dropdownIconColor="#475569"
+            >
+              {isFetching && <Text>Cargando...</Text>}
+              <Picker.Item label="Seleccionar empresa" value="" />
+              {branches?.map((empresa, index) => (
+                <Picker.Item
+                  label={empresa.nombreEmpresa}
+                  value={empresa.nombreEmpresa}
+                  key={index}
+                />
+              ))}
+            </Picker>
+          </View>
+
+          {errors.empresa && (
+            <Text style={styles.errorText}>{errors.empresa}</Text>
+          )}
+          {inputsData.map(({ label, name, placeholder, keyboardType }) => (
+            <View key={name}>
+              <Text style={styles.label}>{label}</Text>
+              <TextInput
                 style={[
                   styles.input,
-                  errors.empresa && styles.inputError,
-                  {
-                    height: 60,
-                    paddingHorizontal: 0,
-                    justifyContent: "center",
-                  },
+                  errors[name as keyof typeof initialErrors] &&
+                    styles.inputError,
                 ]}
-              >
-                <Picker
-                  selectedValue={inputs.empresa}
-                  onValueChange={handleChangeEmpresa}
-                  style={{
-                    height: 80,
-                    color: inputs.empresa ? "#0f172a" : "#94a3b8",
-                  }}
-                  dropdownIconColor="#475569"
-                >
-                  {isFetching && <Text>Cargando...</Text>}
-                  <Picker.Item label="Seleccionar empresa" value="" />
-                  {branches?.map((empresa, index) => (
-                    <Picker.Item
-                      label={empresa.nombreEmpresa}
-                      value={empresa.nombreEmpresa}
-                      key={index}
-                    />
-                  ))}
-                </Picker>
-              </View>
-
-              {errors.empresa && (
-                <Text style={styles.errorText}>{errors.empresa}</Text>
-              )}
-              {inputsData.map(({ label, name, placeholder, keyboardType }) => (
-                <View key={name}>
-                  <Text style={styles.label}>{label}</Text>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      errors[name as keyof typeof initialErrors] &&
-                        styles.inputError,
-                    ]}
-                    value={
-                      typeof inputs[name as keyof typeof initialValues] ===
-                      "string"
-                        ? (inputs[name as keyof typeof initialValues] as string)
-                        : ""
-                    }
-                    onChangeText={(text) =>
-                      handleChange(name as keyof typeof initialValues, text)
-                    }
-                    placeholder={placeholder}
-                    keyboardType={keyboardType || "default"}
-                  />
-                  {errors[name as keyof typeof initialErrors] && (
-                    <Text style={styles.errorText}>
-                      {errors[name as keyof typeof initialErrors]}
-                    </Text>
-                  )}
-                </View>
-              ))}
-
-              {/* Selector de fecha */}
-              <Text style={styles.label}>Fecha de visita</Text>
-              <TouchableOpacity
-                onPress={() => setShowDatePicker(true)}
-                style={[styles.input, { justifyContent: "center" }]}
-              >
-                <Text
-                  style={{ color: inputs.fechaVisita ? "#000" : "#94a3b8" }}
-                >
-                  {inputs.fechaVisita || "Seleccionar fecha"}
-                </Text>
-              </TouchableOpacity>
-              {errors.fechaVisita && (
-                <Text style={styles.errorText}>{errors.fechaVisita}</Text>
-              )}
-
-              {showDatePicker && (
-                <DateTimePicker
-                  value={parseDate(inputs.fechaVisita)}
-                  mode="date"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
-                  onChange={handleDateChange}
-                />
-              )}
-              <TouchableOpacity
-                onPress={() => setShowCheckboxes(!showCheckboxes)}
-                style={styles.toggleButton}
-              >
-                <View style={styles.toggleContent}>
-                  <Text style={styles.labelDocumentacion}>
-                    Documentación que se adjunta
-                  </Text>
-                  {showCheckboxes ? (
-                    <ChevronUp size={18} color="#1e40af" />
-                  ) : (
-                    <ChevronDown size={18} color="#1e40af" />
-                  )}
-                </View>
-              </TouchableOpacity>
-
-              {checkboxesVisibles?.map(({ label, name }) => (
-                <View
-                  key={name}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginVertical: 4,
-                  }}
-                >
-                  <Checkbox
-                    value={!!inputs[name as keyof typeof inputs]}
-                    onValueChange={(newValue) =>
-                      handleCheckbox(
-                        name as keyof typeof initialValues,
-                        newValue
-                      )
-                    }
-                  />
-                  <Text style={styles.labelCheckbox}>{label}</Text>
-                </View>
-              ))}
-              <Text style={styles.label}>Notas</Text>
-              <TextInput
-                multiline={true}
-                numberOfLines={4}
-                style={styles.textArea}
-                placeholder="Escriba las notas aqui..."
-                value={inputs.notas}
-                onChangeText={(text) => handleChange("notas", text)}
+                value={
+                  typeof inputs[name as keyof typeof initialValues] === "string"
+                    ? (inputs[name as keyof typeof initialValues] as string)
+                    : ""
+                }
+                onChangeText={(text) =>
+                  handleChange(name as keyof typeof initialValues, text)
+                }
+                placeholder={placeholder}
+                keyboardType={keyboardType || "default"}
               />
-
-              <TouchableOpacity
-                onPress={handleSubmit}
-                style={[styles.submitButton, isLoading && { opacity: 0.7 }]}
-                disabled={isLoading}
-              >
-                <Text style={styles.submitButtonText}>
-                  {isLoading ? "Enviando..." : "Enviar"}
+              {errors[name as keyof typeof initialErrors] && (
+                <Text style={styles.errorText}>
+                  {errors[name as keyof typeof initialErrors]}
                 </Text>
-              </TouchableOpacity>
+              )}
             </View>
-          </ScrollView>
-        </SafeAreaView>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+          ))}
+
+          {/* Selector de fecha */}
+          <Text style={styles.label}>Fecha de visita</Text>
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(true)}
+            style={[styles.input, { justifyContent: "center" }]}
+          >
+            <Text style={{ color: inputs.fechaVisita ? "#000" : "#94a3b8" }}>
+              {inputs.fechaVisita || "Seleccionar fecha"}
+            </Text>
+          </TouchableOpacity>
+          {errors.fechaVisita && (
+            <Text style={styles.errorText}>{errors.fechaVisita}</Text>
+          )}
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={parseDate(inputs.fechaVisita)}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={handleDateChange}
+            />
+          )}
+          <TouchableOpacity
+            onPress={() => setShowCheckboxes(!showCheckboxes)}
+            style={styles.toggleButton}
+          >
+            <View style={styles.toggleContent}>
+              <Text style={styles.labelDocumentacion}>
+                Documentación que se adjunta
+              </Text>
+              {showCheckboxes ? (
+                <ChevronUp size={18} color="#1e40af" />
+              ) : (
+                <ChevronDown size={18} color="#1e40af" />
+              )}
+            </View>
+          </TouchableOpacity>
+
+          {checkboxesVisibles?.map(({ label, name }) => (
+            <View
+              key={name}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginVertical: 4,
+              }}
+            >
+              <Checkbox
+                value={!!inputs[name as keyof typeof inputs]}
+                onValueChange={(newValue) =>
+                  handleCheckbox(name as keyof typeof initialValues, newValue)
+                }
+              />
+              <Text style={styles.labelCheckbox}>{label}</Text>
+            </View>
+          ))}
+          <Text style={styles.label}>Notas</Text>
+          <TextInput
+            multiline
+            numberOfLines={4}
+            style={styles.textArea}
+            placeholder="Escriba las notas aqui..."
+            value={inputs.notas}
+            onChangeText={(text) => handleChange("notas", text)}
+          />
+
+          <TouchableOpacity
+            onPress={handleSubmit}
+            style={[styles.submitButton, isLoading && { opacity: 0.7 }]}
+            disabled={isLoading}
+          >
+            <Text style={styles.submitButtonText}>
+              {isLoading ? "Enviando..." : "Enviar"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -493,5 +482,10 @@ const styles = StyleSheet.create({
     marginTop: 6,
     minHeight: 120,
     textAlignVertical: "top",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 24,
   },
 });
