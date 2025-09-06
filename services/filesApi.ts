@@ -27,6 +27,13 @@ export const filesApi = apiSlice.injectEndpoints({
       query: (kindId) => `/file/kind/${kindId}`,
       providesTags: ["File"],
     }),
+    postDeleteFileById: builder.mutation({
+      query: (id: string) => ({
+        url: `/file/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["File"],
+    }),
   }),
   overrideExisting: true,
 });
@@ -35,4 +42,5 @@ export const {
   useGetFilesQuery,
   useGetKindsFilesQuery,
   useLazyGetFilesByKindIdQuery,
+  usePostDeleteFileByIdMutation,
 } = filesApi;

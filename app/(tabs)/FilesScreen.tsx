@@ -20,11 +20,13 @@ import {
   File,
   Calendar,
   FolderOpen,
+  Trash,
 } from "lucide-react-native";
 import {
   useGetFilesQuery,
   useGetKindsFilesQuery,
   useLazyGetFilesByKindIdQuery,
+  usePostDeleteFileByIdMutation,
 } from "../../services/filesApi";
 import { formatDate } from "../../utils/parseDate";
 import { useDownloadFile } from "../../hooks/useDownloadFile";
@@ -47,6 +49,10 @@ export default function FilesScreen() {
     useGetKindsFilesQuery();
   const [getFilesByKindId, { isFetching: isFetchingFilesByKindId }] =
     useLazyGetFilesByKindIdQuery();
+
+  //Mutation Redux
+  const [deleteFileById, { isLoading: isDeleting }] =
+    usePostDeleteFileByIdMutation();
 
   //Custom hook
   const { download, isLoading } = useDownloadFile();
@@ -161,6 +167,33 @@ export default function FilesScreen() {
       .replace(/[\u0300-\u036f]/g, "") // quita acentos
       .replace(/[^a-zA-Z0-9\s]/g, "") // solo letras, números y espacios
       .trim();
+  };
+
+  const handleDeleteFileById = async (id: string) => {
+    Alert.alert(
+      "Confirmar eliminación",
+      "¿Estás seguro de que deseas eliminar este archivo?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Eliminar",
+          onPress: async () => {
+            try {
+              const response = await deleteFileById(id).unwrap();
+              if (response) {
+                Alert.alert("Archivo eliminado con éxito");
+              }
+            } catch (error) {
+              Alert.alert("Error", "No se pudo eliminar el archivo");
+            }
+          },
+          style: "destructive",
+        },
+      ]
+    );
   };
 
   const handleClearFilters = async () => {
@@ -333,6 +366,17 @@ export default function FilesScreen() {
                   <Eye size={18} color="#1e40af" />
                   <Text style={styles.actionButtonText}>Previsualizar</Text>
                 </TouchableOpacity> */}
+                  <TouchableOpacity
+                    style={[styles.actionButtonDelete]}
+                    onPress={() => handleDeleteFileById(document.id)}
+                  >
+                    {isDeleting ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <Trash size={18} color="#ffffff" />
+                    )}
+                  </TouchableOpacity>
+
                   <TouchableOpacity
                     style={[styles.actionButton, styles.downloadButton]}
                     onPress={() => download(document.id, document.name)}
@@ -583,5 +627,17 @@ const styles = StyleSheet.create({
     color: "#64748b", // gris suave para no destacar demasiado
     marginTop: 20, // separación de otros elementos
     fontStyle: "italic", // opcional, da un toque sutil
+  },
+  actionButtonDelete: {
+    backgroundColor: "#fc0303",
+    borderColor: "#fc0303",
+    flex: 0.3,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 2,
+    borderRadius: 8,
+    flexDirection: "row",
+    gap: 8,
   },
 });
