@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Keyboard,
+  RefreshControl,
 } from "react-native";
 import {
   Search,
@@ -31,6 +32,7 @@ import {
 import { formatDate } from "../../utils/parseDate";
 import { useDownloadFile } from "../../hooks/useDownloadFile";
 import type { File as typeFile } from "@/services/usuariosApi";
+import { useRefresh } from "../../hooks/useOnRefresh";
 
 export default function FilesScreen() {
   const [searchInput, setSearchInput] = useState<string>("");
@@ -56,6 +58,9 @@ export default function FilesScreen() {
 
   //Custom hook
   const { download, isLoading } = useDownloadFile();
+  const { refreshing, onRefresh } = useRefresh(async () => {
+    await refetch();
+  });
 
   const getFileIcon = (type: string) => {
     switch (type) {
@@ -251,6 +256,14 @@ export default function FilesScreen() {
         showsHorizontalScrollIndicator={false}
         style={styles.categoriesContainer}
         contentContainerStyle={styles.categoriesContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing || isFetching}
+            onRefresh={onRefresh}
+            colors={["#1e40af"]}
+            tintColor="#1e40af"
+          />
+        }
       >
         {Array.isArray(kindsData) &&
           [...kindsData]
