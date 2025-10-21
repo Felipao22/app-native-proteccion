@@ -42,6 +42,7 @@ export default function ConstanciaVisitaScreen() {
     capacitacion: false,
     otros: false,
     inputOtros: "",
+    areas: "",
     notas: "",
   };
 
@@ -370,6 +371,15 @@ export default function ConstanciaVisitaScreen() {
               onChangeText={(text) => handleChange("inputOtros", text)}
             />
           )}
+          <Text style={styles.label}>Áreas auditadas</Text>
+          <TextInput
+            multiline
+            numberOfLines={4}
+            style={styles.textArea}
+            placeholder="Escriba las áreas auditadas aquí..."
+            value={inputs.areas}
+            onChangeText={(text) => handleChange("areas", text)}
+          />
           <Text style={styles.label}>Notas</Text>
           <TextInput
             multiline

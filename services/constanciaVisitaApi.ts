@@ -21,6 +21,7 @@ export interface constanciaVisita {
   capacitacion: boolean;
   otros: boolean;
   inputOtros: string;
+  areas: string;
   notas: string;
 }
 
