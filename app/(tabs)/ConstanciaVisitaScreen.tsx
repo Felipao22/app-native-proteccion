@@ -40,6 +40,8 @@ export default function ConstanciaVisitaScreen() {
     inspeccion: false,
     relevamiento: false,
     capacitacion: false,
+    otros: false,
+    inputOtros: "",
     notas: "",
   };
 
@@ -222,6 +224,7 @@ export default function ConstanciaVisitaScreen() {
       checked: false,
     },
     { label: "Registro de Capacitación", name: "capacitacion", checked: false },
+    { label: "Otros", name: "otros", checked: false },
   ];
 
   const checkboxesVisibles = showCheckboxes ? checkboxes : null;
@@ -359,6 +362,14 @@ export default function ConstanciaVisitaScreen() {
               <Text style={styles.labelCheckbox}>{label}</Text>
             </View>
           ))}
+          {inputs?.otros && (
+            <TextInput
+              style={styles.input}
+              placeholder="Especifique otros..."
+              value={inputs.inputOtros}
+              onChangeText={(text) => handleChange("inputOtros", text)}
+            />
+          )}
           <Text style={styles.label}>Notas</Text>
           <TextInput
             multiline

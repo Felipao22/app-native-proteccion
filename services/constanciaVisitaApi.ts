@@ -19,6 +19,8 @@ export interface constanciaVisita {
   inspeccion: boolean;
   relevamiento: boolean;
   capacitacion: boolean;
+  otros: boolean;
+  inputOtros: string;
   notas: string;
 }
 
