@@ -23,6 +23,7 @@ export interface constanciaVisita {
   inputOtros: string;
   areas: string;
   notas: string;
+  documentacion: string;
 }
 
 export interface responseConstancia {

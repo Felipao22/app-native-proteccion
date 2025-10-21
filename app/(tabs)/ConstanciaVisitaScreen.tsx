@@ -44,6 +44,7 @@ export default function ConstanciaVisitaScreen() {
     inputOtros: "",
     areas: "",
     notas: "",
+    documentacion: "",
   };
 
   const initialErrors = {
@@ -329,6 +330,15 @@ export default function ConstanciaVisitaScreen() {
               onChange={handleDateChange}
             />
           )}
+          <Text style={styles.label}>Documentación entregada</Text>
+          <TextInput
+            multiline
+            numberOfLines={4}
+            style={styles.textArea}
+            placeholder="Escriba las documentación entregada aquí..."
+            value={inputs.documentacion}
+            onChangeText={(text) => handleChange("documentacion", text)}
+          />
           <TouchableOpacity
             onPress={() => setShowCheckboxes(!showCheckboxes)}
             style={styles.toggleButton}
