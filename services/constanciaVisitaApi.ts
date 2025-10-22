@@ -33,14 +33,11 @@ export interface responseConstancia {
 }
 export const constanciaVisitaApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    postConstanciaVisita: builder.mutation<
-      responseConstancia,
-      constanciaVisita
-    >({
-      query: (data: constanciaVisita) => ({
+    postConstanciaVisita: builder.mutation<responseConstancia, FormData>({
+      query: (formData) => ({
         url: "excel/generate-visit-excel",
         method: "POST",
-        body: data,
+        body: formData,
       }),
       invalidatesTags: ["File"],
     }),
