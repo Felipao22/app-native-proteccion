@@ -24,14 +24,13 @@ export default function CameraNativePicker({
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
-    // Cada vez que cambia resetTrigger, limpiamos imágenes
+    // Cada vez que cambia resetTrigger, limpio imágenes
     if (resetTrigger !== undefined) {
       setImages([]);
       onPhotosTaken?.([]);
     }
   }, [resetTrigger]);
 
-  // 📸 Tomar una foto
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") return;
@@ -50,14 +49,13 @@ export default function CameraNativePicker({
     setModalVisible(false);
   };
 
-  // 🖼️ Elegir desde la galería
   const pickFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
-      allowsMultipleSelection: true, // 🔹 Permite varias imágenes
+      allowsMultipleSelection: true,
       quality: 1,
     });
 
@@ -70,7 +68,6 @@ export default function CameraNativePicker({
     setModalVisible(false);
   };
 
-  // ❌ Eliminar imagen
   const removeImage = (uri: string) => {
     const filtered = images.filter((img) => img !== uri);
     setImages(filtered);
@@ -79,7 +76,6 @@ export default function CameraNativePicker({
 
   return (
     <View style={styles.container}>
-      {/* Botón principal */}
       <TouchableOpacity
         style={styles.imageContainer}
         onPress={() => setModalVisible(true)}
@@ -88,7 +84,6 @@ export default function CameraNativePicker({
         <Text style={styles.placeholderText}>Agregar fotos</Text>
       </TouchableOpacity>
 
-      {/* Muestra todas las imágenes seleccionadas */}
       {images.length > 0 && (
         <ScrollView
           horizontal
@@ -108,8 +103,6 @@ export default function CameraNativePicker({
           ))}
         </ScrollView>
       )}
-
-      {/* Modal de opciones */}
       <Modal
         animationType="slide"
         transparent
