@@ -19,6 +19,7 @@ import { ChevronDown, ChevronUp } from "lucide-react-native";
 import type { Users } from "../../services/usuariosApi";
 import type { constanciaVisita } from "../../services/constanciaVisitaApi";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import CameraNativePicker from "../../components/Camera";
 
 export default function ConstanciaVisitaScreen() {
   const initialValues = {
@@ -61,12 +62,16 @@ export default function ConstanciaVisitaScreen() {
   const [errors, setErrors] = useState(initialErrors);
   const [branches, setBranches] = useState<Users[]>([]);
   const [showCheckboxes, setShowCheckboxes] = useState(false);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   // Mutation Redux
   const [postConstancia, { isLoading }] = usePostConstanciaVisitaMutation();
 
   //Querys Redux
   const { data, isFetching } = useGetUsersQuery();
+
+  const formData = new FormData();
 
   useEffect(() => {
     if (data && data?.length > 0) {
@@ -154,7 +159,19 @@ export default function ConstanciaVisitaScreen() {
   const handleSubmit = async () => {
     if (validate()) {
       try {
-        const response = await postConstancia(inputs).unwrap();
+        photos.forEach((uri, index) => {
+          const file = {
+            uri,
+            type: "image/jpeg",
+            name: `photo_${index}.jpg`,
+          };
+          formData.append("imagenes", file as any);
+        });
+
+        const jsonBody = JSON.stringify(inputs);
+        formData.append("data", jsonBody);
+
+        const response = await postConstancia(formData).unwrap();
         if (response) {
           Alert.alert(response.message);
           handleClear();
@@ -167,6 +184,10 @@ export default function ConstanciaVisitaScreen() {
 
   const handleClear = () => {
     setInputs(initialValues);
+    setPhotos([]);
+    setErrors(initialErrors);
+    setResetTrigger((prev) => prev + 1);
+    setShowCheckboxes(false);
   };
 
   const handleDateChange = (_event: any, selectedDate: Date | undefined) => {
@@ -390,6 +411,16 @@ export default function ConstanciaVisitaScreen() {
             value={inputs.areas}
             onChangeText={(text) => handleChange("areas", text)}
           />
+          <Text style={styles.label}>Foto de evidencia</Text>
+          <CameraNativePicker
+            onPhotosTaken={(uris) => setPhotos(uris)}
+            resetTrigger={resetTrigger}
+          />
+          {photos.length > 0 && (
+            <Text style={{ marginTop: 10 }}>
+              {photos.length} fotos seleccionadas
+            </Text>
+          )}
           <Text style={styles.label}>Notas</Text>
           <TextInput
             multiline
