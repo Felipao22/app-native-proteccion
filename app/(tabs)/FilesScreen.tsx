@@ -12,18 +12,7 @@ import {
   Keyboard,
   RefreshControl,
 } from "react-native";
-import {
-  Search,
-  Download,
-  FileText,
-  Image,
-  Video,
-  File,
-  Calendar,
-  FolderOpen,
-  Trash,
-  Filter,
-} from "lucide-react-native";
+import { Search, Download, Calendar, Trash, Filter } from "lucide-react-native";
 import {
   useGetFilesQuery,
   useGetKindsFilesQuery,
@@ -39,6 +28,7 @@ import {
 import { useRefresh } from "../../hooks/useOnRefresh";
 import { filtersApplied } from "../../services/filesApi";
 import FilterModal from "../../components/FilterModal";
+import { getFileIcon } from "../../utils/getFileIcon";
 
 export default function FilesScreen() {
   const initialValues = {
@@ -75,25 +65,6 @@ export default function FilesScreen() {
   const { refreshing, onRefresh } = useRefresh(async () => {
     await refetch();
   });
-
-  const getFileIcon = (type: string) => {
-    switch (type) {
-      case "application/pdf":
-        return <FileText size={24} color="#dc2626" />;
-      case "excel":
-        return <FileText size={24} color="#059669" />;
-      case "word":
-        return <FileText size={24} color="#1e40af" />;
-      case "video":
-        return <Video size={24} color="#7c3aed" />;
-      case "image":
-        return <Image size={24} color="#ea580c" />;
-      case "zip":
-        return <FolderOpen size={24} color="#64748b" />;
-      default:
-        return <File size={24} color="#64748b" />;
-    }
-  };
 
   const categoryColorMap: Record<string, string> = {
     Botiquines: "#1e40af",
