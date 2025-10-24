@@ -3,7 +3,7 @@ interface FormatOptions {
   local: string;
 }
 
-export const formatDate = (
+export const formatDateWithHours = (
   date: FormatOptions["date"],
   local: FormatOptions["local"]
 ) => {
@@ -19,4 +19,17 @@ export const formatDate = (
   }).format(parsedDate);
 
   return `${formatted} hs.`;
+};
+
+export const parseDate = (dateStr: string): Date => {
+  if (!dateStr) return new Date();
+  const [day, month, year] = dateStr.split("/").map(Number);
+  return new Date(year, month - 1, day, 12);
+};
+
+export const formatDate = (date: Date) => {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
 };
