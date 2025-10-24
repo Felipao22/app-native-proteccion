@@ -6,11 +6,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  Platform,
   KeyboardTypeOptions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { usePostConstanciaVisitaMutation } from "../../services/constanciaVisitaApi";
 import { useGetUsersQuery } from "../../services/usuariosApi";
 import { Picker } from "@react-native-picker/picker";
@@ -20,6 +18,7 @@ import type { Users } from "../../services/usuariosApi";
 import type { constanciaVisita } from "../../services/constanciaVisitaApi";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import CameraNativePicker from "../../components/Camera";
+import { DatePickerField } from "@/components/DatePickerField";
 
 export default function ConstanciaVisitaScreen() {
   const initialValues = {
@@ -58,7 +57,6 @@ export default function ConstanciaVisitaScreen() {
   };
 
   const [inputs, setInputs] = useState<constanciaVisita>(initialValues);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
   const [branches, setBranches] = useState<Users[]>([]);
   const [showCheckboxes, setShowCheckboxes] = useState(false);
@@ -82,27 +80,6 @@ export default function ConstanciaVisitaScreen() {
       setBranches(establecimientos);
     }
   }, [data]);
-
-  // Formatea objeto Date a string dd/MM/yyyy
-  const formatDate = (date: Date | string) => {
-    if (!(date instanceof Date) || isNaN(date.getTime())) return "";
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    return `${dd}/${mm}/${yyyy}`;
-  };
-
-  // Parsea string dd/MM/yyyy a objeto Date
-  const parseDate = (dateStr: string) => {
-    if (!dateStr) return new Date();
-    const parts = dateStr.split("/");
-    if (parts.length !== 3) return new Date();
-    const [dd, mm, yyyy] = parts;
-    const parsed = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
-    return parsed instanceof Date && !isNaN(parsed.getTime())
-      ? parsed
-      : new Date();
-  };
 
   const handleChange = (name: keyof typeof initialValues, value: string) => {
     setInputs({ ...inputs, [name]: value });
@@ -190,17 +167,6 @@ export default function ConstanciaVisitaScreen() {
     setShowCheckboxes(false);
   };
 
-  const handleDateChange = (_event: any, selectedDate: Date | undefined) => {
-    setShowDatePicker(false);
-    if (
-      selectedDate &&
-      selectedDate instanceof Date &&
-      !isNaN(selectedDate.getTime())
-    ) {
-      const formattedDate = formatDate(selectedDate);
-      handleChange("fechaVisita", formattedDate);
-    }
-  };
   const inputsData: {
     label: string;
     name: keyof typeof initialValues;
@@ -331,26 +297,24 @@ export default function ConstanciaVisitaScreen() {
 
           {/* Selector de fecha */}
           <Text style={styles.label}>Fecha de visita</Text>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => setShowDatePicker(true)}
             style={[styles.input, { justifyContent: "center" }]}
-          >
-            <Text style={{ color: inputs.fechaVisita ? "#000" : "#94a3b8" }}>
-              {inputs.fechaVisita || "Seleccionar fecha"}
-            </Text>
-          </TouchableOpacity>
+          > */}
+          {/* <Text style={{ color: inputs.fechaVisita ? "#000" : "#94a3b8" }}>
+            {inputs.fechaVisita || "Seleccionar fecha"}
+          </Text> */}
+          {/* </TouchableOpacity> */}
+          <DatePickerField
+            value={inputs.fechaVisita}
+            onChange={(text) =>
+              setInputs((prev) => ({ ...prev, fechaVisita: text }))
+            }
+          />
           {errors.fechaVisita && (
             <Text style={styles.errorText}>{errors.fechaVisita}</Text>
           )}
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={parseDate(inputs.fechaVisita)}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={handleDateChange}
-            />
-          )}
           <Text style={styles.label}>Documentación entregada</Text>
           <TextInput
             multiline
