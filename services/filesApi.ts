@@ -12,6 +12,26 @@ export interface FileResponse {
   data: File[];
 }
 
+export interface filterFileResponse {
+  message: string;
+  filrtersApplied: filtersApplied;
+  pagination: pagination;
+  data: File[];
+}
+
+export interface filtersApplied {
+  startDate?: string;
+  endDate?: string;
+  userId?: string;
+  kindId?: string;
+}
+export interface pagination {
+  page: number;
+  limit: number;
+  totalPages: number;
+  total: number;
+}
+
 export const filesApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getFiles: builder.query<File[], string | void>({
@@ -34,6 +54,14 @@ export const filesApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["File"],
     }),
+    postFilterFiles: builder.mutation<filterFileResponse, filtersApplied>({
+      query: (filters) => ({
+        url: "/file/filter",
+        method: "POST",
+        body: filters,
+      }),
+      invalidatesTags: ["File"],
+    }),
   }),
   overrideExisting: true,
 });
@@ -43,4 +71,5 @@ export const {
   useGetKindsFilesQuery,
   useLazyGetFilesByKindIdQuery,
   usePostDeleteFileByIdMutation,
+  usePostFilterFilesMutation,
 } = filesApi;
