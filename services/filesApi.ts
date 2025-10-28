@@ -24,6 +24,7 @@ export interface filtersApplied {
   endDate?: string;
   userId?: string;
   kindId?: string;
+  page?: number;
 }
 export interface pagination {
   page: number;
@@ -60,7 +61,6 @@ export const filesApi = apiSlice.injectEndpoints({
         method: "POST",
         body: filters,
       }),
-      invalidatesTags: ["File"],
     }),
   }),
   overrideExisting: true,
