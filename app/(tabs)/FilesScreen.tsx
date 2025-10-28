@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -23,12 +23,15 @@ import { formatDateWithHours } from "../../utils/parseDate";
 import { useDownloadFile } from "../../hooks/useDownloadFile";
 import {
   useGetUsersQuery,
+  type Users,
   type File as typeFile,
 } from "@/services/usuariosApi";
 import { useRefresh } from "../../hooks/useOnRefresh";
 import { filtersApplied } from "../../services/filesApi";
 import FilterModal from "../../components/FilterModal";
 import { getFileIcon } from "../../utils/getFileIcon";
+import { usePagination } from "../../hooks/usePagination";
+import { Pagination } from "../../components/Pagination";
 
 export default function FilesScreen() {
   const initialValues = {
@@ -43,6 +46,7 @@ export default function FilesScreen() {
   const [filteredFiles, setFilteredFiles] = useState<typeFile[]>([]);
   const [filters, setFilters] = useState<filtersApplied>(initialValues);
   const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [branches, setBranches] = useState<Users[]>([]);
 
   //Querys Redux
   const {
@@ -63,8 +67,29 @@ export default function FilesScreen() {
   //Custom hook
   const { download, isLoading } = useDownloadFile();
   const { refreshing, onRefresh } = useRefresh(async () => {
-    await refetch();
+    handleClearFilters();
   });
+  const {
+    page,
+    totalPages,
+    lastPage,
+    hasNextPage,
+    hasPrevPage,
+    nextPage,
+    prevPage,
+    resetPagination,
+    updatePagination,
+  } = usePagination(1, 20);
+
+  useEffect(() => {
+    if (userData && userData?.length > 0) {
+      //Filtrar usuarios que no sean empresas
+      const filterData = userData.filter((e) => !e.isAdmin && !e.isSuperAdmin);
+      //Obtener nombres de las empresas
+      const establecimientos = filterData.map((est) => est);
+      setBranches(establecimientos);
+    }
+  }, [userData]);
 
   const categoryColorMap: Record<string, string> = {
     Botiquines: "#1e40af",
@@ -119,18 +144,23 @@ export default function FilesScreen() {
     return color || "#64748b";
   };
 
+  useEffect(() => {
+    if (isSearched) {
+      getFilesFiltered({ ...filters, page });
+    }
+  }, [page]);
+
   const getFilesFiltered = async (appliedFilters: filtersApplied) => {
     try {
-      const response = await filterFiles(appliedFilters).unwrap();
+      const response = await filterFiles({ ...appliedFilters, page }).unwrap();
       if (response?.data && Array.isArray(response.data)) {
         setFilteredFiles(response.data);
-        setIsSearched(true);
+        if (response.pagination) updatePagination(response.pagination);
       } else {
         setFilteredFiles([]);
-        setIsSearched(false);
       }
-
       setFilters(appliedFilters);
+      setIsSearched(true);
     } catch (error) {
       console.error("Error al obtener archivos filtrados:", error);
       Alert.alert("Error", "No se pudieron cargar los archivos filtrados");
@@ -191,6 +221,12 @@ export default function FilesScreen() {
     setSearchQuery("");
     setFilters(initialValues);
     setShowFilters(false);
+    updatePagination({
+      page: 1,
+      totalPages: 1,
+      total: 0,
+      limit: 20,
+    });
   };
 
   const handleSearch = () => {
@@ -372,6 +408,19 @@ export default function FilesScreen() {
           )}
         </ScrollView>
       </ScrollView>
+      {totalPages > 1 && (
+        <Pagination
+          resetPagination={resetPagination}
+          hasPrevPage={hasPrevPage}
+          prevPage={prevPage}
+          page={page}
+          totalPages={totalPages}
+          hasNextPage={hasNextPage}
+          nextPage={nextPage}
+          lastPage={lastPage}
+        />
+      )}
+
       <FilterModal
         showFilters={showFilters}
         setShowFilters={setShowFilters}
@@ -381,7 +430,7 @@ export default function FilesScreen() {
         onApplyFilters={getFilesFiltered}
         clearFilters={handleClearFilters}
         kindId={filters?.kindId}
-        users={Array.isArray(userData) ? userData : []}
+        users={Array.isArray(branches) ? branches : []}
         userId={filters?.userId}
       />
     </SafeAreaView>
