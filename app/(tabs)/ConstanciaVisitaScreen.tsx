@@ -19,6 +19,9 @@ import type { constanciaVisita } from "../../services/constanciaVisitaApi";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import CameraNativePicker from "../../components/Camera";
 import { DatePickerField } from "@/components/DatePickerField";
+import SignatureScreen from "@/components/Signature";
+import appendFirmaDataUrlToFormData from "@/utils/appendFirmaDataUrlToFormData";
+
 
 export default function ConstanciaVisitaScreen() {
   const initialValues = {
@@ -45,6 +48,7 @@ export default function ConstanciaVisitaScreen() {
     areas: "",
     notas: "",
     documentacion: "",
+    firma: "",
   };
 
   const initialErrors = {
@@ -62,14 +66,13 @@ export default function ConstanciaVisitaScreen() {
   const [showCheckboxes, setShowCheckboxes] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [resetTrigger, setResetTrigger] = useState(0);
+  const [firmaDataUrl, setFirmaDataUrl] = useState<string | null>(null);
 
   // Mutation Redux
   const [postConstancia, { isLoading }] = usePostConstanciaVisitaMutation();
 
   //Querys Redux
   const { data, isFetching } = useGetUsersQuery();
-
-  const formData = new FormData();
 
   useEffect(() => {
     if (data && data?.length > 0) {
@@ -136,6 +139,8 @@ export default function ConstanciaVisitaScreen() {
   const handleSubmit = async () => {
     if (validate()) {
       try {
+        const formData = new FormData();
+
         photos.forEach((uri, index) => {
           const file = {
             uri,
@@ -144,6 +149,10 @@ export default function ConstanciaVisitaScreen() {
           };
           formData.append("imagenes", file as any);
         });
+
+        if (firmaDataUrl) {
+          await appendFirmaDataUrlToFormData(formData, firmaDataUrl);
+        }
 
         const jsonBody = JSON.stringify(inputs);
         formData.append("data", jsonBody);
@@ -162,6 +171,7 @@ export default function ConstanciaVisitaScreen() {
   const handleClear = () => {
     setInputs(initialValues);
     setPhotos([]);
+    setFirmaDataUrl(null);
     setErrors(initialErrors);
     setResetTrigger((prev) => prev + 1);
     setShowCheckboxes(false);
@@ -294,17 +304,7 @@ export default function ConstanciaVisitaScreen() {
               )}
             </View>
           ))}
-
-          {/* Selector de fecha */}
           <Text style={styles.label}>Fecha de visita</Text>
-          {/* <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            style={[styles.input, { justifyContent: "center" }]}
-          > */}
-          {/* <Text style={{ color: inputs.fechaVisita ? "#000" : "#94a3b8" }}>
-            {inputs.fechaVisita || "Seleccionar fecha"}
-          </Text> */}
-          {/* </TouchableOpacity> */}
           <DatePickerField
             value={inputs.fechaVisita}
             onChange={(text) =>
@@ -393,6 +393,11 @@ export default function ConstanciaVisitaScreen() {
             placeholder="Escriba las notas aqui..."
             value={inputs.notas}
             onChangeText={(text) => handleChange("notas", text)}
+          />
+          <Text style={styles.label}>Persona que recibe la constancia:</Text>
+          <SignatureScreen
+            onChange={setFirmaDataUrl}
+            resetTrigger={resetTrigger}
           />
 
           <TouchableOpacity
