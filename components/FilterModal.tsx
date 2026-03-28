@@ -128,42 +128,6 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 </View>
               </View>
             </View>
-
-            {/* Categorías */}
-            {categories && categories.length > 0 && (
-              <View style={styles.filterSection}>
-                <Text style={styles.filterLabel}>Categoría</Text>
-                <View style={styles.categoryGrid}>
-                  {categories.map((cat) => (
-                    <TouchableOpacity
-                      key={cat.id}
-                      style={[
-                        styles.categoryFilterButton,
-                        tempFilters.kindId === cat.id &&
-                          styles.categoryFilterButtonActive,
-                      ]}
-                      onPress={() =>
-                        setTempFilters((prev) => ({
-                          ...prev,
-                          kindId: prev.kindId === cat.id ? "" : cat.id,
-                        }))
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.categoryFilterText,
-                          tempFilters.kindId === cat.id &&
-                            styles.categoryFilterTextActive,
-                        ]}
-                      >
-                        {cat.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
-
             {/* Empresas */}
             {users && users.length > 0 && (
               <View style={styles.filterSection}>
@@ -192,6 +156,40 @@ const FilterModal: React.FC<FilterModalProps> = ({
                         ]}
                       >
                         {u.nombreEmpresa}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+              {/* Categorías */}
+              {categories && categories.length > 0 && (
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Categoría</Text>
+                <View style={styles.categoryGrid}>
+                  {categories.map((cat) => (
+                    <TouchableOpacity
+                      key={cat.id}
+                      style={[
+                        styles.categoryFilterButton,
+                        tempFilters.kindId === cat.id &&
+                          styles.categoryFilterButtonActive,
+                      ]}
+                      onPress={() =>
+                        setTempFilters((prev) => ({
+                          ...prev,
+                          kindId: prev.kindId === cat.id ? "" : cat.id,
+                        }))
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.categoryFilterText,
+                          tempFilters.kindId === cat.id &&
+                            styles.categoryFilterTextActive,
+                        ]}
+                      >
+                        {cat.name}
                       </Text>
                     </TouchableOpacity>
                   ))}
