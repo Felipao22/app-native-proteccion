@@ -10,8 +10,8 @@
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "module": "Node16",
-    "moduleResolution": "node16",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "paths": {
@@ -21,7 +21,7 @@
     }
   },
   "include": [
-    "app/**/*.ts",
+  "app/**/*.ts",
     "app/**/*.tsx",
     "expo-env.d.ts",
     "nativewind-env.d.ts",
