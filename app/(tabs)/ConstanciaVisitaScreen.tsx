@@ -49,6 +49,10 @@ export default function ConstanciaVisitaScreen() {
     notas: "",
     documentacion: "",
     firma: "",
+    tipoDocumento: "",
+    numeroDocumento: "",
+    aclaracion: "",
+    cargo: "",
   };
 
   const initialErrors = {
@@ -395,6 +399,62 @@ export default function ConstanciaVisitaScreen() {
             onChangeText={(text) => handleChange("notas", text)}
           />
           <Text style={styles.label}>Persona que recibe la constancia:</Text>
+          <View style={styles.form}>
+          <Text style={styles.label}>Tipo de documento</Text>
+          <View
+            style={[
+              styles.input,
+              {
+                height: 60,
+                paddingHorizontal: 0,
+                justifyContent: "center",
+              },
+            ]}
+          >
+          <Picker
+              selectedValue={inputs.tipoDocumento}
+              onValueChange={(text) => handleChange("tipoDocumento", text)}
+              style={{
+                height: 80,
+                color: inputs.tipoDocumento ? "#0f172a" : "#94a3b8",
+              }}
+              dropdownIconColor="#475569"
+            >
+              <Picker.Item label="Seleccionar tipo de documento" value="" />
+                <Picker.Item
+                  label="DNI"
+                  value="D.N.I."
+                />
+                <Picker.Item
+                  label="Pasaporte"
+                  value="Pasaporte"
+                />
+            </Picker>
+            </View>
+            </View>
+            <Text style={styles.label}>Número de documento</Text>
+            <TextInput
+              style={styles.input}
+              maxLength={8}
+              keyboardType="numeric"
+              placeholder="Número de documento"
+              value={inputs.numeroDocumento}
+              onChangeText={(text) => handleChange("numeroDocumento", text)}
+            />
+            <Text style={styles.label}>Aclaración</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Aclaración"
+              value={inputs.aclaracion}
+              onChangeText={(text) => handleChange("aclaracion", text)}
+            />
+               <Text style={styles.label}>Cargo</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Cargo"
+              value={inputs.cargo}
+              onChangeText={(text) => handleChange("cargo", text)}
+            />
           <SignatureScreen
             onChange={setFirmaDataUrl}
             resetTrigger={resetTrigger}
