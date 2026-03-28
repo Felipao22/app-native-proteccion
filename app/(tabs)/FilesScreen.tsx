@@ -48,12 +48,26 @@ export default function FilesScreen() {
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [branches, setBranches] = useState<Users[]>([]);
 
-  //Querys Redux
+  const {
+    page,
+    totalPages,
+    lastPage,
+    hasNextPage,
+    hasPrevPage,
+    nextPage,
+    prevPage,
+    resetPagination,
+    updatePagination,
+  } = usePagination(1, 20);
+
   const {
     data: filesData,
     isFetching,
     refetch,
-  } = useGetFilesQuery(searchQuery || undefined);
+  } = useGetFilesQuery({
+    name: searchQuery.trim() || undefined,
+    page: isSearched ? 1 : page
+  });
   const { data: kindsData, isFetching: isFetchingKinds } =
     useGetKindsFilesQuery();
   const { data: userData, isFetching: isFetchingUsers } = useGetUsersQuery();
@@ -69,17 +83,6 @@ export default function FilesScreen() {
   const { refreshing, onRefresh } = useRefresh(async () => {
     handleClearFilters();
   });
-  const {
-    page,
-    totalPages,
-    lastPage,
-    hasNextPage,
-    hasPrevPage,
-    nextPage,
-    prevPage,
-    resetPagination,
-    updatePagination,
-  } = usePagination(1, 20);
 
   useEffect(() => {
     if (userData && userData?.length > 0) {
@@ -146,13 +149,29 @@ export default function FilesScreen() {
 
   useEffect(() => {
     if (isSearched) {
-      getFilesFiltered({ ...filters, page });
+      getFilesFiltered({ ...filters, page }, false);
     }
   }, [page]);
 
-  const getFilesFiltered = async (appliedFilters: filtersApplied) => {
+  useEffect(() => {
+    if (!isSearched && filesData?.pagination && !isFetching) {
+      updatePagination(filesData.pagination);
+    }
+  }, [isSearched, filesData, isFetching, updatePagination]);
+
+  const getFilesFiltered = async (
+    appliedFilters: filtersApplied,
+    resetPage = false
+  ) => {
+    const pageToUse = resetPage ? 1 : page;
+    if (resetPage) {
+      resetPagination();
+    }
     try {
-      const response = await filterFiles({ ...appliedFilters, page }).unwrap();
+      const response = await filterFiles({
+        ...appliedFilters,
+        page: pageToUse,
+      }).unwrap();
       if (response?.data && Array.isArray(response.data)) {
         setFilteredFiles(response.data);
         if (response.pagination) updatePagination(response.pagination);
@@ -214,19 +233,15 @@ export default function FilesScreen() {
   };
 
   const handleClearFilters = async () => {
-    await refetch();
     setIsSearched(false);
     setFilteredFiles([]);
     setSearchInput("");
     setSearchQuery("");
     setFilters(initialValues);
     setShowFilters(false);
-    updatePagination({
-      page: 1,
-      totalPages: 1,
-      total: 0,
-      limit: 20,
-    });
+    resetPagination();
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    await refetch();
   };
 
   const handleSearch = () => {
@@ -235,7 +250,7 @@ export default function FilesScreen() {
     setSearchQuery(formatedQuery);
   };
 
-  const dataToRender = isSearched ? filteredFiles : filesData;
+  const dataToRender = isSearched ? filteredFiles : filesData?.data;
 
   const getActiveFiltersCount = () => {
     let count = 0;
@@ -271,7 +286,7 @@ export default function FilesScreen() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Archivos cargados</Text>
           <View style={styles.statsContainer}>
-            <Text style={styles.statsText}>{filesData?.length} archivos</Text>
+            <Text style={styles.statsText}>{filesData?.pagination.total} archivos</Text>
           </View>
         </View>
 
@@ -324,7 +339,6 @@ export default function FilesScreen() {
           {dataToRender && dataToRender.length > 0 ? (
             dataToRender.map((document) => (
               <View key={document.id} style={styles.documentCard}>
-                <View key={document.id} style={styles.documentCard}>
                   <View style={styles.documentHeader}>
                     <View style={styles.documentInfo}>
                       <View style={styles.fileIconContainer}>
@@ -398,7 +412,6 @@ export default function FilesScreen() {
                       </Text>
                     </TouchableOpacity>
                   </View>
-                </View>
               </View>
             ))
           ) : (
@@ -427,7 +440,7 @@ export default function FilesScreen() {
         categories={Array.isArray(kindsData) ? kindsData : []}
         startDate={filters?.startDate}
         endDate={filters?.endDate}
-        onApplyFilters={getFilesFiltered}
+        onApplyFilters={(applied) => getFilesFiltered(applied, true)}
         clearFilters={handleClearFilters}
         kindId={filters?.kindId}
         users={Array.isArray(branches) ? branches : []}
