@@ -25,6 +25,10 @@ export interface constanciaVisita {
   notas: string;
   documentacion: string;
   firma: string;
+  tipoDocumento: string;
+  numeroDocumento: string;
+  aclaracion: string;
+  cargo: string;
 }
 
 export interface responseConstancia {
