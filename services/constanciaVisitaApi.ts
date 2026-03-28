@@ -24,6 +24,7 @@ export interface constanciaVisita {
   areas: string;
   notas: string;
   documentacion: string;
+  firma: string;
 }
 
 export interface responseConstancia {
